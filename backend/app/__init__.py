@@ -1,0 +1,3 @@
+"""
+AetherMind Backend Application Package.
+"""
