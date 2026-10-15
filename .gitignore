@@ -27,6 +27,8 @@ build/
 *.tmp
 .DS_Store
 Thumbs.db
+backend/storage/generated_pdfs/*.pdf
+!backend/storage/generated_pdfs/.gitkeep
 
 # IDE & Editor Settings
 .vscode/

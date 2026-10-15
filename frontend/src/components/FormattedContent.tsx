@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CopyIcon, CheckIcon } from './Icons';
+import { CopyIcon, CheckIcon, DownloadIcon } from './Icons';
 
 interface FormattedContentProps {
   content: string;
@@ -16,59 +16,9 @@ export const FormattedContent: React.FC<FormattedContentProps> = ({ content }) =
     }, 2000);
   };
 
-  // Split by code blocks: ```lang ... ```
-  const parts = content.split(/(```[\s\S]*?```)/g);
-
-  const renderInlineFormatted = (text: string) => {
-    // Process headers
-    const lines = text.split('\n');
-    return lines.map((line, lineIdx) => {
-      if (line.startsWith('### ')) {
-        return (
-          <h3 key={lineIdx} className="content-h3">
-            {renderInlineSpans(line.replace('### ', ''))}
-          </h3>
-        );
-      }
-      if (line.startsWith('#### ')) {
-        return (
-          <h4 key={lineIdx} className="content-h4">
-            {renderInlineSpans(line.replace('#### ', ''))}
-          </h4>
-        );
-      }
-      if (line.startsWith('- ') || line.startsWith('* ')) {
-        return (
-          <div key={lineIdx} className="content-bullet">
-            <span className="bullet-dot">•</span>
-            <span>{renderInlineSpans(line.substring(2))}</span>
-          </div>
-        );
-      }
-      // Numbered list item
-      const numMatch = line.match(/^(\d+\.)\s+(.*)$/);
-      if (numMatch) {
-        return (
-          <div key={lineIdx} className="content-bullet">
-            <span className="bullet-num">{numMatch[1]}</span>
-            <span>{renderInlineSpans(numMatch[2])}</span>
-          </div>
-        );
-      }
-      if (!line.trim()) {
-        return <div key={lineIdx} className="content-space" />;
-      }
-      return (
-        <p key={lineIdx} className="content-p">
-          {renderInlineSpans(line)}
-        </p>
-      );
-    });
-  };
-
   const renderInlineSpans = (text: string) => {
-    // Matches **bold** and `code`
-    const regex = /(\*\*.*?\*\*|`.*?`)/g;
+    // Matches: [link text](url), **bold**, `code`
+    const regex = /(\[.*?\]\(.*?\)|\*\*.*?\*\*|`.*?`)/g;
     const tokens = text.split(regex);
 
     return tokens.map((token, idx) => {
@@ -78,9 +28,192 @@ export const FormattedContent: React.FC<FormattedContentProps> = ({ content }) =
       if (token.startsWith('`') && token.endsWith('`')) {
         return <code key={idx} className="inline-code">{token.slice(1, -1)}</code>;
       }
+      // Markdown link: [text](url)
+      const linkMatch = token.match(/^\[(.*?)\]\((.*?)\)$/);
+      if (linkMatch) {
+        const linkText = linkMatch[1];
+        const linkUrl = linkMatch[2];
+        const isPdf = linkUrl.includes('/api/pdf/download/') || linkUrl.toLowerCase().endsWith('.pdf');
+
+        if (isPdf) {
+          return (
+            <a
+              key={idx}
+              href={linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="chat-pdf-download-btn"
+              title="Download generated PDF file"
+            >
+              <DownloadIcon size={14} />
+              <span>{linkText}</span>
+            </a>
+          );
+        }
+
+        return (
+          <a
+            key={idx}
+            href={linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="chat-inline-link"
+          >
+            {linkText}
+          </a>
+        );
+      }
       return token;
     });
   };
+
+  const renderInlineFormatted = (rawText: string) => {
+    const lines = rawText.split('\n');
+    const nodes: React.ReactNode[] = [];
+    let i = 0;
+
+    while (i < lines.length) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Horizontal rule
+      if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
+        nodes.push(<hr key={i} className="content-hr" />);
+        i++;
+        continue;
+      }
+
+      // Check for Markdown Table
+      if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+        const tableLines: string[] = [];
+        while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+          tableLines.push(lines[i].trim());
+          i++;
+        }
+
+        if (tableLines.length > 0) {
+          const rows = tableLines.map((tl) =>
+            tl
+              .slice(1, -1)
+              .split('|')
+              .map((c) => c.trim())
+          );
+          // Check if row 1 is separator
+          const hasSeparator = rows.length > 1 && rows[1].every((c) => /^:?-+:?$/.test(c));
+          const headerRow = rows[0];
+          const bodyRows = hasSeparator ? rows.slice(2) : rows.slice(1);
+
+          nodes.push(
+            <div key={`table-${i}`} className="content-table-wrapper">
+              <table className="content-table">
+                <thead>
+                  <tr>
+                    {headerRow.map((cell, cIdx) => (
+                      <th key={cIdx}>{renderInlineSpans(cell)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {bodyRows.map((row, rIdx) => (
+                    <tr key={rIdx}>
+                      {row.map((cell, cIdx) => (
+                        <td key={cIdx}>{renderInlineSpans(cell)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+          continue;
+        }
+      }
+
+      // Headings
+      if (line.startsWith('### ')) {
+        nodes.push(
+          <h3 key={i} className="content-h3">
+            {renderInlineSpans(line.replace('### ', ''))}
+          </h3>
+        );
+        i++;
+        continue;
+      }
+      if (line.startsWith('## ')) {
+        nodes.push(
+          <h2 key={i} className="content-h2">
+            {renderInlineSpans(line.replace('## ', ''))}
+          </h2>
+        );
+        i++;
+        continue;
+      }
+      if (line.startsWith('# ')) {
+        nodes.push(
+          <h1 key={i} className="content-h1">
+            {renderInlineSpans(line.replace('# ', ''))}
+          </h1>
+        );
+        i++;
+        continue;
+      }
+      if (line.startsWith('#### ')) {
+        nodes.push(
+          <h4 key={i} className="content-h4">
+            {renderInlineSpans(line.replace('#### ', ''))}
+          </h4>
+        );
+        i++;
+        continue;
+      }
+
+      // Bullet lists
+      if (line.startsWith('- ') || line.startsWith('* ')) {
+        nodes.push(
+          <div key={i} className="content-bullet">
+            <span className="bullet-dot">•</span>
+            <span>{renderInlineSpans(line.substring(2))}</span>
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      // Numbered lists
+      const numMatch = line.match(/^(\d+\.)\s+(.*)$/);
+      if (numMatch) {
+        nodes.push(
+          <div key={i} className="content-bullet">
+            <span className="bullet-num">{numMatch[1]}</span>
+            <span>{renderInlineSpans(numMatch[2])}</span>
+          </div>
+        );
+        i++;
+        continue;
+      }
+
+      // Blank line
+      if (!trimmed) {
+        nodes.push(<div key={i} className="content-space" />);
+        i++;
+        continue;
+      }
+
+      // Standard paragraph
+      nodes.push(
+        <p key={i} className="content-p">
+          {renderInlineSpans(line)}
+        </p>
+      );
+      i++;
+    }
+
+    return nodes;
+  };
+
+  // Split by code blocks: ```lang ... ```
+  const parts = content.split(/(```[\s\S]*?```)/g);
 
   return (
     <div className="formatted-content">

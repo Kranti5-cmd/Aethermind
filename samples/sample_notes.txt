@@ -1,0 +1,10 @@
+AetherMind Knowledge Assistant - Technical Notes
+==================================================
+Date: October 2026
+Module: Module 2 - Document Intelligence
+
+Key System Highlights:
+1. Resilient document ingestion supporting PDF, DOCX, TXT, and CSV.
+2. In-memory and streaming extraction with zero API credential exposure.
+3. Clean, glassmorphic presentation with real-time structural metrics.
+4. Production-ready PostgreSQL persistence and conversational AI layer.

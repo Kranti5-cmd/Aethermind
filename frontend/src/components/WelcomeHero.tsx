@@ -8,63 +8,87 @@ interface WelcomeHeroProps {
 export const WelcomeHero: React.FC<WelcomeHeroProps> = ({ onSelectPrompt }) => {
   const suggestions = [
     {
-      icon: <LightbulbIcon size={20} />,
-      title: 'Brainstorm Solutions',
-      description: 'Develop innovative approaches for architectural challenges',
+      category: 'BRAINSTORMING',
+      icon: <LightbulbIcon size={18} />,
+      title: 'Architectural Ideation',
+      description: 'Develop high-performance architectures & scalable patterns',
       prompt: 'Help me brainstorm ideas for designing a high-performance conversational AI architecture.',
+      colorClass: 'card-amber',
     },
     {
-      icon: <CompassIcon size={20} />,
-      title: 'Explore Knowledge',
-      description: 'Break down complex subjects into intuitive explanations',
+      category: 'EXPLORATION',
+      icon: <CompassIcon size={18} />,
+      title: 'Deep Knowledge Synthesis',
+      description: 'Explain vector embeddings, cosine distance, and RAG retrieval',
       prompt: 'Explain how vector embeddings and retrieval-augmented generation work together.',
+      colorClass: 'card-cyan',
     },
     {
-      icon: <CodeIcon size={20} />,
-      title: 'Code & Debugging',
-      description: 'Write, review, or optimize clean code and algorithms',
+      category: 'ENGINEERING',
+      icon: <CodeIcon size={18} />,
+      title: 'Asynchronous APIs',
+      description: 'Write, review, and optimize clean FastAPI endpoints with async handlers',
       prompt: 'What are the best practices for structuring asynchronous APIs in FastAPI?',
+      colorClass: 'card-violet',
     },
     {
-      icon: <BookOpenIcon size={20} />,
-      title: 'Research & Synthesis',
-      description: 'Summarize documents and distill actionable takeaways',
-      prompt: 'How can I structure a personal knowledge assistant to organize my research papers?',
+      category: 'DOCUMENT INTELLIGENCE',
+      icon: <BookOpenIcon size={18} />,
+      title: 'Document Analysis & Q&A',
+      description: 'Extract tables from CSV, analyze PDFs, and summarize key takeaways',
+      prompt: 'Summarize the attached document and extract key takeaways with data points.',
+      colorClass: 'card-emerald',
     },
   ];
 
   return (
-    <div className="welcome-hero">
-      <div className="hero-emblem-wrapper">
-        <div className="hero-emblem-glow"></div>
-        <div className="hero-emblem">
-          <SparklesIcon size={38} className="hero-sparkle" />
+    <div className="welcome-hero-v2">
+      <div className="hero-top-badge">
+        <span className="hero-badge-dot"></span>
+        <span className="hero-badge-text">AetherMind v2.5 • Multi-Modal Intelligence Engine</span>
+      </div>
+
+      <div className="hero-main-banner">
+        <div className="hero-emblem-v2">
+          <SparklesIcon size={24} className="hero-sparkle-v2" />
+        </div>
+        <div className="hero-headings-v2">
+          <h1 className="hero-title-v2">
+            What will we <span className="hero-gradient-text">create & discover</span> today?
+          </h1>
+          <p className="hero-subtitle-v2">
+            Your high-precision AI workspace for multi-turn conversations, full-fidelity document extraction,
+            and instant knowledge synthesis powered by Gemini.
+          </p>
         </div>
       </div>
 
-      <div className="hero-headings">
-        <h2 className="hero-title">
-          Where would you like to begin with <span className="gradient-text">AetherMind</span>?
-        </h2>
-        <p className="hero-subtitle">
-          Your personal knowledge assistant and intelligent conversation partner. 
-          Ask questions, brainstorm strategies, or explore complex topics effortlessly.
-        </p>
+      <div className="hero-capabilities-bar">
+        <span className="cap-tag"><span className="cap-dot dot-pdf"></span>PDF & DOCX RAG</span>
+        <span className="cap-tag"><span className="cap-dot dot-csv"></span>CSV Data Extraction</span>
+        <span className="cap-tag"><span className="cap-dot dot-pdf-gen"></span>ReportLab PDF Export</span>
+        <span className="cap-tag"><span className="cap-dot dot-pg"></span>Neon PostgreSQL Storage</span>
       </div>
 
-      <div className="suggestions-grid">
+      <div className="suggestions-grid-v2">
         {suggestions.map((item, idx) => (
           <button
             key={idx}
-            className="suggestion-card"
+            className={`suggestion-card-v2 ${item.colorClass}`}
             onClick={() => onSelectPrompt(item.prompt)}
+            type="button"
           >
-            <div className="suggestion-icon-wrap">
-              {item.icon}
+            <div className="card-top-row">
+              <span className="card-category-tag">{item.category}</span>
+              <div className="card-icon-bubble">{item.icon}</div>
             </div>
-            <div className="suggestion-text">
-              <span className="suggestion-title">{item.title}</span>
-              <span className="suggestion-desc">{item.description}</span>
+            <div className="card-content-body">
+              <h3 className="card-item-title">{item.title}</h3>
+              <p className="card-item-desc">{item.description}</p>
+            </div>
+            <div className="card-footer-action">
+              <span className="card-action-text">Use prompt</span>
+              <span className="card-action-arrow">→</span>
             </div>
           </button>
         ))}

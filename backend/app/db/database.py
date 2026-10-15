@@ -199,6 +199,8 @@ def init_db() -> bool:
         # 2. Import models and verify/create tables
         from app.models.conversation import Conversation  # noqa: F401
         from app.models.message import Message  # noqa: F401
+        from app.models.document import Document  # noqa: F401
+        from app.models.user_preference import UserPreference  # noqa: F401
 
         Base.metadata.create_all(bind=engine)
         print(f"[Database] Successfully connected to PostgreSQL ({safe_url}) and verified tables.")
